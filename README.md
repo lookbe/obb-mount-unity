@@ -38,14 +38,13 @@ Use a coroutine to wait for the OBB to initialize. If the device doesn't support
 using System.Collections;
 using UnityEngine;
 using System.IO;
-using AndroidObbMount;
  
 public class MyModelLoader : MonoBehaviour
 {
     IEnumerator Start()
     {
         // Wait until the mount point is filled
-        while (string.IsNullOrEmpty(AndroidObbMount.mountPoint))
+        while (string.IsNullOrEmpty(AndroidObbMount.AndroidObbMount.mountPoint))
         {
             yield return null;
         }
