@@ -19,3 +19,45 @@ Normally, you have to copy the model from the APK to `Application.persistentData
 * **OBB is Obsolete:** Google Play now uses **Play Asset Delivery (PAD)** for production.
 * **Intended Use:** This is a **debugging/testing utility** to help AI developers iterate quickly without writing complex extraction logic.
 * **Compatibility:** OBB mounting relies on the Android `StorageManager` API, which can vary across device manufacturers.
+
+---
+
+### Usage
+This package is designed to be plug-and-play:
+1. Drag and drop the `AndroidObbMount` **prefab** into your initial scene.
+2. In your code, start a coroutine to wait for the mount point to resolve.
+3. Keep `AndroidObbMount` **prefab** alive if you are changing scene, or obb file will be unmounted.
+
+---
+
+## 💻 Code Example
+
+Use a coroutine to wait for the OBB to initialize. If the device doesn't support OBB mounting or an error occurs, the tool automatically falls back to the standard `Application.streamingAssetsPath`.
+
+```csharp
+using System.Collections;
+using UnityEngine;
+using System.IO;
+using AndroidObbMount;
+ 
+public class MyModelLoader : MonoBehaviour
+{
+    IEnumerator Start()
+    {
+        // Wait until the mount point is filled
+        while (string.IsNullOrEmpty(AndroidObbMount.mountPoint))
+        {
+            yield return null;
+        }
+
+        string rootPath = AndroidObbMount.mountPoint;
+        string modelPath = Path.Combine(rootPath, "my_ai_model.onnx");
+
+        Debug.Log("Accessing model at: " + modelPath);
+        
+        // Pass modelPath directly to your native AI plugin
+        MyNativePlugin.Init(modelPath);
+    }
+}
+```
+
