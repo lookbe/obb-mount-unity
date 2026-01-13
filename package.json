@@ -1,0 +1,14 @@
+{
+    "name": "ai.lookbe.obbmount",
+    "version": "0.0.1",
+    "displayName": "Android OBB Mount",
+    "description": "Android custom OBB files mount for direct file path",
+    "unity": "2021.3",
+    "keywords": [
+        "android",
+        "obb"
+    ],
+    "author": {
+        "name": "lookbe"
+    }
+}
