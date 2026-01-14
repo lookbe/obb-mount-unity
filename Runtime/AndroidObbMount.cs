@@ -38,9 +38,9 @@ namespace AndroidObbMount
 
                     if (!File.Exists(obbPath))
                     {
-                        Debug.LogWarning("OBB file not found: " + obbPath);
                         // fallback
                         mountPoint = Application.streamingAssetsPath;
+                        Debug.LogWarning("OBB file not found: " + obbPath);
                         return;
                     }
 
@@ -49,18 +49,17 @@ namespace AndroidObbMount
                     bool result = storageManager.Call<bool>("mountObb", obbPath, null, new AndroidJavaObject("ai.lookbe.obbmount.ObbListener"));
                     if (!result)
                     {
-                        Debug.LogError("Failed to call mountObb");
                         // fallback
                         mountPoint = Application.streamingAssetsPath;
+                        Debug.LogError("Failed to call mountObb");
                     }
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Error mounting OBB: " + e.Message);
-
                 // fallback
                 mountPoint = Application.streamingAssetsPath;
+                Debug.LogError("Error mounting OBB: " + e.Message);
             }
         }
 
