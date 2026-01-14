@@ -67,10 +67,8 @@ namespace AndroidObbMount
         // Called by Java when OBB is mounted
         public void OnObbMounted(string obbPath)
         {
-            string path = storageManager.Call<string>("getMountedObbPath", obbPath);
-            mountPoint = path;
-
-            Debug.Log("OBB mounted at: " + path);
+            mountPoint = storageManager.Call<string>("getMountedObbPath", obbPath);
+            Debug.Log("OBB mounted at: " + mountPoint);
         }
 
         int GetVersionCode()
