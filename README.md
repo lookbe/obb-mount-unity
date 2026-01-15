@@ -65,7 +65,7 @@ public class MyModelLoader : MonoBehaviour
             yield return null;
         }
 
-        string rootPath = AndroidObbMount.mountPoint;
+        string rootPath = AndroidObbMount.AndroidObbMount.mountPoint;
         string modelPath = Path.Combine(rootPath, "my_ai_model.onnx");
 
         Debug.Log("Accessing model at: " + modelPath);
