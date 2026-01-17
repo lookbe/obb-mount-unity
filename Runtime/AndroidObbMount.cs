@@ -6,6 +6,8 @@ namespace AndroidObbMount
     public class AndroidObbMount : MonoBehaviour
     {
         public static string mountPoint { get; private set; } = string.Empty;
+        public static string patchMountPoint { get; private set; } = string.Empty;
+        
         private AndroidJavaObject storageManager;
 
         void Start()
@@ -18,6 +20,7 @@ namespace AndroidObbMount
             {
                 // fallback
                 mountPoint = Application.streamingAssetsPath;
+                patchMountPoint = Application.streamingAssetsPath;
             }
         }
 
@@ -38,9 +41,10 @@ namespace AndroidObbMount
 
                     if (!File.Exists(obbPath))
                     {
+                        Debug.LogWarning("OBB file not found: " + obbPath);
                         // fallback
                         mountPoint = Application.streamingAssetsPath;
-                        Debug.LogWarning("OBB file not found: " + obbPath);
+                        patchMountPoint = Application.streamingAssetsPath;
                         return;
                     }
 
@@ -49,25 +53,83 @@ namespace AndroidObbMount
                     bool result = storageManager.Call<bool>("mountObb", obbPath, null, new AndroidJavaObject("ai.lookbe.obbmount.ObbListener"));
                     if (!result)
                     {
+                        Debug.LogError("Failed to call mountObb");
                         // fallback
                         mountPoint = Application.streamingAssetsPath;
-                        Debug.LogError("Failed to call mountObb");
+                        patchMountPoint = Application.streamingAssetsPath;
                     }
                 }
             }
             catch (System.Exception e)
             {
+                Debug.LogError("Error mounting OBB: " + e.Message);
+
                 // fallback
                 mountPoint = Application.streamingAssetsPath;
+                patchMountPoint = Application.streamingAssetsPath;
+            }
+        }
+
+        void MountPatchObb()
+        {
+            try
+            {
+                using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                {
+                    // Path for your main OBB
+                    string obbPath =
+                        activity.Call<AndroidJavaObject>("getObbDir")
+                        .Call<string>("getAbsolutePath")
+                        + "/patch." + GetVersionCode() + "." + Application.identifier + ".obb";
+
+                    Debug.Log("OBB Path: " + obbPath);
+
+                    if (!File.Exists(obbPath))
+                    {
+                        Debug.LogWarning("OBB file not found: " + obbPath);
+                        // fallback
+                        patchMountPoint = Application.streamingAssetsPath;
+                        return;
+                    }
+
+                    // Mount OBB
+                    storageManager = activity.Call<AndroidJavaObject>("getSystemService", "storage");
+                    bool result = storageManager.Call<bool>("mountObb", obbPath, null, new AndroidJavaObject("ai.lookbe.obbmount.ObbListener"));
+                    if (!result)
+                    {
+                        Debug.LogError("Failed to call mountObb");
+                        // fallback
+                        patchMountPoint = Application.streamingAssetsPath;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
                 Debug.LogError("Error mounting OBB: " + e.Message);
+
+                // fallback
+                patchMountPoint = Application.streamingAssetsPath;
             }
         }
 
         // Called by Java when OBB is mounted
         public void OnObbMounted(string obbPath)
         {
-            mountPoint = storageManager.Call<string>("getMountedObbPath", obbPath);
-            Debug.Log("OBB mounted at: " + mountPoint);
+            if (obbPath.Contains("main"))
+            {
+                string path = storageManager.Call<string>("getMountedObbPath", obbPath);
+                mountPoint = path;
+                Debug.Log("OBB mounted at: " + path);
+
+                MountPatchObb();
+            }
+            else if (obbPath.Contains("patch"))
+            {
+                string path = storageManager.Call<string>("getMountedObbPath", obbPath);
+                patchMountPoint = path;
+                Debug.Log("Patch OBB mounted at: " + path);
+            }
         }
 
         int GetVersionCode()
